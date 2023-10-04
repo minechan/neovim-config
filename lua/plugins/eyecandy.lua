@@ -49,7 +49,7 @@ local indent_blankline = {
 -- Treesitter
 -------------------------------------------------------------------------------
 
-local nvim_treesitter =  {
+local nvim_treesitter = {
     "nvim-treesitter/nvim-treesitter",
     event = { "BufReadPre", "BufNewFile" },
     build = function ()
