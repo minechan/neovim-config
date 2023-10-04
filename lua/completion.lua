@@ -1,5 +1,7 @@
-local parentheses = { { "(", ")" }, { "[", "]" }, { "{", "}" }, { "<", ">" } }
-local quotations  = { "'", '"' }
+local parentheses    = { { "(", ")" }, { "[", "]" }, { "{", "}" }, { "<", ">" } }
+local quotations     = { "'", '"' }
+local backspace_keys = { "<BS>", "<C-h>" }
+local return_keys    = { "<CR>", "<C-m>", "<C-j>" }
 
 -- かっこ
 for _, pair in ipairs(parentheses) do
@@ -62,7 +64,7 @@ vim.keymap.set("i", " ", function ()
     local line = vim.fn.getline(pos[2])
 
     if pos[3] >= 2 and pos[3] <= #line then
-        if line:sub(pos[3], pos[3]) == ">" then
+        if line:sub(pos[3] - 1, pos[3]) == "<>" then
             return "<Right><BS> "
         else
             for _, pair in ipairs(parentheses) do
@@ -77,28 +79,30 @@ vim.keymap.set("i", " ", function ()
 end, { expr = true })
 
 -- バックスペース
-vim.keymap.set("i", "<BS>", function ()
-    local pos  = vim.fn.getpos(".")
-    local line = vim.fn.getline(pos[2])
+for _, key in ipairs(backspace_keys) do
+    vim.keymap.set("i", key, function ()
+        local pos  = vim.fn.getpos(".")
+        local line = vim.fn.getline(pos[2])
 
-    if pos[3] >= 2 and pos[3] <= #line then
-        for _, pair in ipairs(parentheses) do
-            if line:sub(pos[3] - 1, pos[3]) == pair[1] .. pair[2] then
-                return "<Right><BS><BS>"
+        if pos[3] >= 2 and pos[3] <= #line then
+            for _, pair in ipairs(parentheses) do
+                if line:sub(pos[3] - 1, pos[3]) == pair[1] .. pair[2] then
+                    return "<Right><BS><BS>"
+                end
+            end
+            for _, pair in ipairs(quotations) do
+                if line:sub(pos[3] - 1, pos[3]) == pair .. pair then
+                    return "<Right><BS><BS>"
+                end
             end
         end
-        for _, pair in ipairs(quotations) do
-            if line:sub(pos[3] - 1, pos[3]) == pair .. pair then
-                return "<Right><BS><BS>"
+        if pos[3] >= 3 and pos[3] < #line then
+            for _, pair in ipairs(parentheses) do
+                if line:sub(pos[3] - 2, pos[3] + 1) == pair[1] .. "  " .. pair[2] then
+                    return "<Right><BS><BS>"
+                end
             end
         end
-    end
-    if pos[3] >= 3 and pos[3] < #line then
-        for _, pair in ipairs(parentheses) do
-            if line:sub(pos[3] - 2, pos[3] + 1) == pair[1] .. "  " .. pair[2] then
-                return "<Right><BS><BS>"
-            end
-        end
-    end
-    return "<BS>"
-end, { expr = true })
+        return "<BS>"
+    end, { expr = true })
+end
